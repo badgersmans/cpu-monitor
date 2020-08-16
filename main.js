@@ -1,9 +1,10 @@
 const path                                         = require("path");
 const os                                           = require("os");
-const { app, BrowserWindow, Menu, ipcMain, Tray }  = require("electron");
+const { app, Menu, ipcMain, Tray }                 = require("electron");
 const slash                                        = require("slash");
 const log                                          = require("electron-log");
 const Store                                        = require('./Store');
+const MainWindow                                   = require('./MainWindow');
 
 /* #region  variables */
 
@@ -32,43 +33,12 @@ const store = new Store({
 
 
 function createMainWindow() {
-  mainWindow = new BrowserWindow({
-    title: "CPU Monitor",
-    width: isDev ? 800 : 355,
-    height: isDev ? 800 : 500,
-    icon: `${__dirname}/assets/icons/icon.png`,
-    resizable: isDev,
-    show: false,
-
-    webPreferences: {
-      nodeIntegration: true,
-      // nodeIntegrationInWorker: false,
-      worldSafeExecuteJavaScript: true,
-    },
-  });
-
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-  }
-  mainWindow.loadFile("./app/index.html");
+  mainWindow = new MainWindow("./app/index.html", isDev);
 }
 
 
 const menu = [
 
-/*   ...(isMac
-    ? [
-        {
-          label: app.name,
-          submenu: [
-            {
-              label: "About",
-              click: createAboutWindow,
-            },
-          ],
-        },
-      ]
-    : []), */
 
   {
     role: "fileMenu",
@@ -97,19 +67,6 @@ const menu = [
       ]
     : []),
 
-/*   ...(!isMac
-    ? [
-        {
-          label: "Help",
-          submenu: [
-            {
-              label: "About",
-              click: createAboutWindow,
-            },
-          ],
-        },
-      ]
-    : []), */
 ];
 
 
