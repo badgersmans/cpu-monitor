@@ -1,7 +1,7 @@
 const path            = require('path');
 const { ipcRenderer } = require('electron');
 const osu             = require('node-os-utils');
-const { settings } = require('cluster');
+const { settings }    = require('cluster');
 const cpu             = osu.cpu;
 const memory          = osu.mem;
 const os              = osu.os;
