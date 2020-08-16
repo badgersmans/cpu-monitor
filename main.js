@@ -1,8 +1,9 @@
-const path = require("path");
-const os = require("os");
+const path                                         = require("path");
+const os                                           = require("os");
 const { app, BrowserWindow, Menu, ipcMain, shell } = require("electron");
-const slash = require("slash");
-const log = require("electron-log");
+const slash                                        = require("slash");
+const log                                          = require("electron-log");
+const Store                                        = require('./Store');
 
 /* #region  variables */
 
@@ -16,17 +17,27 @@ const isMac = process.platform === "darwin" ? true : false;
 let mainWindow;
 let aboutWindow;
 
+// Init store and defaults
+const store = new Store({
+  configName: 'user-settings',
+  defaults: {
+    settings: {
+      cpuOverload: 80,
+      alertFrequency: 5
+    }
+  }
+});
+
 /* #endregion */
 
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
-    title: "Image Shrinker",
-    width: isDev ? 800 : 500,
-    height: isDev ? 800 : 700,
-    icon: `${__dirname}/assets/icons/Icon_256x256.png`,
+    title: "CPU Monitor",
+    width: isDev ? 800 : 355,
+    height: isDev ? 800 : 500,
+    icon: `${__dirname}/assets/icons/icon.png`,
     resizable: isDev,
-    backgroundColor: "white",
 
     webPreferences: {
       nodeIntegration: true,
@@ -41,27 +52,10 @@ function createMainWindow() {
   mainWindow.loadFile("./app/index.html");
 }
 
-function createAboutWindow() {
-  aboutWindow = new BrowserWindow({
-    title: "About Image Shrinker",
-    width: 300,
-    height: 300,
-    icon: `${__dirname}/assets/icons/Icon_256x256.png`,
-    resizable: false,
-    backgroundColor: "white",
-
-    webPreferences: {
-      nodeIntegration: false,
-      nodeIntegrationInWorker: false,
-      worldSafeExecuteJavaScript: true,
-    },
-  });
-  aboutWindow.setMenu(null);
-  aboutWindow.loadFile("./app/about.html");
-}
 
 const menu = [
-  ...(isMac
+
+/*   ...(isMac
     ? [
         {
           label: app.name,
@@ -73,7 +67,7 @@ const menu = [
           ],
         },
       ]
-    : []),
+    : []), */
 
   {
     role: "fileMenu",
@@ -93,7 +87,7 @@ const menu = [
       ]
     : []),
 
-  ...(!isMac
+/*   ...(!isMac
     ? [
         {
           label: "Help",
@@ -105,49 +99,30 @@ const menu = [
           ],
         },
       ]
-    : []),
+    : []), */
 ];
-
-/* ipcMain.on('image:minimize', (e, options) => {
-  options.destination = path.join(os.homedir(), 'image-shrinker')
-  // console.log(options);
-  shrinker(options);
-}); */
-
-/* async function shrinker({ imagePath, quality, destination }) {
-  try {
-
-    const pngQuality = quality / 100;
-
-    const files = await imagemin([slash(imagePath)], {
-      destination,
-      plugins: [
-        imageminMozjpeg({ quality }),
-        imageminPngquant({
-          quality: [pngQuality, pngQuality]
-        })
-      ]
-    });
-    log.info(files);
-
-    shell.openPath(destination)
-
-    mainWindow.webContents.send('image:done')
-
-  } catch (error) {
-    log.error(error);
-  }
-}; */
-
 
 
 app.on("ready", () => {
   createMainWindow();
+
+  mainWindow.webContents.on('dom-ready', () => {
+    mainWindow.webContents.send('settings:get', store.get('settings'));
+  });
+
   const mainMenu = Menu.buildFromTemplate(menu);
   mainWindow.setMenu(mainMenu);
 
   mainWindow.on("closed", () => (mainWindow = null));
 });
+
+
+// set settings
+ipcMain.on('settings:set', (e, settings) => {
+  store.set('settings', settings);
+  mainWindow.webContents.send('settings:get', store.get('settings'));
+});
+
 
 app.on("window-all-closed", () => {
   if (!isMac) {
