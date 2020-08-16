@@ -1,10 +1,10 @@
-const path                                         = require("path");
-const os                                           = require("os");
-const { app, Menu, ipcMain, Tray }                 = require("electron");
-const slash                                        = require("slash");
-const log                                          = require("electron-log");
-const Store                                        = require('./Store');
-const MainWindow                                   = require('./MainWindow');
+const path             = require("path");
+const os               = require("os");
+const { app, Menu, ipcMain} = require("electron");
+const slash            = require("slash");
+const Store            = require('./Store');
+const MainWindow       = require('./MainWindow');
+const AppTray          = require('./AppTray');
 
 /* #region  variables */
 
@@ -92,29 +92,7 @@ app.on("ready", () => {
   const icon = path.join(__dirname, 'assets', 'icons', 'tray_icon.png');
 
   // create tray
-  tray = new Tray(icon);
-
-  tray.on('click', () => {
-    if (mainWindow.isVisible() === true) {
-      mainWindow.hide();
-    } else {
-      mainWindow.show();
-    }
-  });
-
-  tray.on('right-click', () => {
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: 'Quit',
-        click: () => {
-          app.isQuitting = true
-          app.quit();
-        }
-      }
-    ]);
-
-    tray.popUpContextMenu(contextMenu);
-  });
+  tray = new AppTray(icon, mainWindow);
 
   mainWindow.on("closed", () => (mainWindow = null));
 });
